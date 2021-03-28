@@ -12,9 +12,11 @@ router.get('/getHeroSecProducts', (req, res) => productControllers.getHeroSectio
 
 router.get('/productById/:id', (req, res) => productControllers.getProductById(req, res));
 
-router.post('/addProduct', upload.fields([{ name: 'productImage', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]), (req, res) => productControllers.addProduct(req, res));
+// router.post('/addProduct', upload.fields([{ name: 'productImage', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]), (req, res) => productControllers.addProduct(req, res));
+router.post('/addProduct', (req, res) => productControllers.addProduct(req, res));
 
-router.patch('/updateProduct', upload.fields([{ name: 'productImage', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]), (req, res) => productControllers.updateProduct(req, res));
+// router.patch('/updateProduct', upload.fields([{ name: 'productImage', maxCount: 1 }, { name: 'gallery', maxCount: 8 }]), (req, res) => productControllers.updateProduct(req, res));
+router.patch('/updateProduct', (req, res) => productControllers.updateProduct(req, res));
 
 router.patch('/activateProduct/:id', (req, res) => productControllers.activateProduct(req, res));
 

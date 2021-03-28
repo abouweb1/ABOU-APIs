@@ -47,25 +47,29 @@ function getProductById(req, res) {
 
 function addProduct(req, res) {
     const newProduct = Product({
+        ...req.body,
         _id: new mongoose.Types.ObjectId(),
 
-        productId: req.body.productId,
+        // productId: req.body.productId,
 
-        superTitle: req.body.superTitle,
+        // superTitle: req.body.superTitle,
 
-        title: req.body.title,
+        // title: req.body.title,
 
-        subtitle: req.body.subtitle,
+        // subtitle: req.body.subtitle,
 
-        bulletList: req.body.bulletList,
+        // bulletList: req.body.bulletList,
 
-        description: req.body.description,
+        // description: req.body.description,
 
-        productImage: req.files['productImage'] && req.files['productImage'][0].path,
+        // productImage: req.body.productImage,
 
-        gallery: req.files['gallery'] && req.files['gallery'].length > 0 && req.files['gallery'].map((image) => (image.path)),
+        // gallery: req.body.productImage,
+        // // productImage: req.files['productImage'] && req.files['productImage'][0].path,
 
-        active: req.body.active
+        // // gallery: req.files['gallery'] && req.files['gallery'].length > 0 && req.files['gallery'].map((image) => (image.path)),
+
+        // active: req.body.active
     })
     newProduct.save((err, productData) => {
         if (err) {
@@ -100,9 +104,9 @@ function updateProduct(req, res) {
         // description: req.body.description,
         ...req.body,
 
-        productImage: req.files['productImage'] && req.files['productImage'][0].path,
+        // productImage: req.files['productImage'] && req.files['productImage'][0].path,
 
-        gallery: req.files['gallery'] && req.files['gallery'].length > 0 && req.files['gallery'].map((image) => (image.path)),
+        // gallery: req.files['gallery'] && req.files['gallery'].length > 0 && req.files['gallery'].map((image) => (image.path)),
 
     }, { new: true }, (err, updatedProduct) => {
         if (err) {

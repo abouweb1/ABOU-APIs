@@ -16,8 +16,9 @@ app.set('view engine', 'ejs');
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static('./uploads'));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(basicAuth({ users: { 'admin': 'admin@2021' } }));
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
