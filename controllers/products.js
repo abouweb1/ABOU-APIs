@@ -1,27 +1,6 @@
 const Product = require('../models/products');
 const mongoose = require("mongoose");
 
-function getActiveProduct(req, res) {
-    Product.find({ active: true }, (err, products) => {
-        if (products) {
-            res.status(200).json(products)
-        } else {
-            res.status(400).json({ message: "Failed!" });
-        }
-    })
-
-}
-
-function getHeroSectionProduct(req, res) {
-    Product.find({ active: true, heroSectionItem: true }, (err, products) => {
-        if (products) {
-            res.status(200).json(products)
-        } else {
-            res.status(400).json({ message: "Failed!" });
-        }
-    })
-
-}
 
 function getAllProduct(req, res) {
     Product.find((err, products) => {
@@ -35,19 +14,131 @@ function getAllProduct(req, res) {
 
 }
 
+function getActiveProduct(req, res) {
+    // Product.find({ active: true }, (err, products) => {
+    //     if (products) {
+    //         res.status(200).json(products)
+    //     } else {
+    //         res.status(400).json({ message: "Failed!" });
+    //     }
+    // })
+    // if (res.params.lang == 'en') {
+    //     Product.find({ active: true }).select()
+    // }
+    // else if (res.params.lang == 'ar') {
+    //     Product.find({ active: true }).select()
+    // }
+    if (req.params.lang == 'en') {
+
+        Product.find({ active: true }).select('productId superTitle title subtitle bulletList description productImage gallery')
+            .then((products) => { res.status(200).json(products) })
+            .catch(err => { res.status(400).json({ message: 'Failed to get products', error: err }) })
+    }
+    else if (req.params.lang == 'ar') {
+        Product.find({ active: true }).select('productId superTitle_ar title_ar subtitle_ar bulletList_ar description_ar productImage gallery')
+            .then((products) => {
+                res.status(200).json(
+                    products.map(product => {
+                        return {
+                            productId: product.productId,
+                            superTitle: product.superTitle_ar,
+                            title: product.title_ar,
+                            subtitle: product.subtitle_ar,
+                            bulletList: product.bulletList_ar,
+                            description: product.description_ar,
+                            productImage: product.productImage,
+                            gallery: product.gallery,
+                        }
+                    })
+                )
+            })
+            .catch(err => { res.status(400).json({ message: 'Failed to get products', error: err }) })
+    }
+}
+
+function getHeroSectionProduct(req, res) {
+    // Product.find({ active: true, heroSectionItem: true }, (err, products) => {
+    //     if (products) {
+    //         res.status(200).json(products)
+    //     } else {
+    //         res.status(400).json({ message: "Failed!" });
+    //     }
+    // })
+
+    if (req.params.lang == 'en') {
+        Product.find({ active: true, heroSectionItem: true }).select('productId superTitle title subtitle description productImage')
+            .then((products) => { res.status(200).json(products) })
+            .catch(err => { res.status(400).json({ message: 'Failed to get products', error: err }) })
+
+
+    }
+    else if (req.params.lang == 'ar') {
+        Product.find({ active: true, heroSectionItem: true }).select('productId superTitle_ar title_ar subtitle_ar  description_ar productImage ')
+            .then((products) => {
+                res.status(200).json(
+                    products.map(product => {
+                        return {
+                            productId: product.productId,
+                            superTitle: product.superTitle_ar,
+                            title: product.title_ar,
+                            subtitle: product.subtitle_ar,
+                            description: product.description_ar,
+                            productImage: product.productImage,
+                        }
+                    })
+                )
+            })
+            .catch(err => { res.status(400).json({ message: 'Failed to get products', error: err }) })
+
+
+    }
+}
+
+
 function getProductById(req, res) {
-    Product.find({ productId: req.params.id }, (err, product) => {
-        if (product) {
-            res.status(200).json(product)
-        } else {
-            res.status(400).json({ message: "Failed!" });
-        }
-    })
+
+    if (req.params.lang == 'en') {
+        Product.find({ productId: req.params.id }).select('productId superTitle title subtitle bulletList description productImage gallery')
+            .then((products) => { res.status(200).json(products) })
+            .catch(err => { res.status(400).json({ message: 'Failed to get products', error: err }) })
+
+
+    }
+    else if (req.params.lang == 'ar') {
+        Product.find({ productId: req.params.id }).select('productId superTitle_ar title_ar subtitle_ar bulletList_ar description_ar productImage gallery')
+            .then((products) => {
+                res.status(200).json(
+                    products.map(product => {
+                        return {
+                            productId: product.productId,
+                            superTitle: product.superTitle_ar,
+                            title: product.title_ar,
+                            subtitle: product.subtitle_ar,
+                            bulletList: product.bulletList_ar,
+                            description: product.description_ar,
+                            productImage: product.productImage,
+                            gallery: product.gallery,
+                        }
+                    })
+                )
+            })
+            .catch(err => { res.status(400).json({ message: 'Failed to get products', error: err }) })
+
+
+    }
+    // Product.find({ productId: req.params.id }, (err, product) => {
+    //     if (product) {
+    //         res.status(200).json(product)
+    //     } else {
+    //         res.status(400).json({ message: "Failed!" });
+    //     }
+    // })
 }
 
 function addProduct(req, res) {
     const newProduct = Product({
         ...req.body,
+        heroSectionItem: false,
         _id: new mongoose.Types.ObjectId(),
 
         // productId: req.body.productId,
