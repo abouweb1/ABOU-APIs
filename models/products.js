@@ -10,6 +10,11 @@ const productSchema = {
         unique: true
     },
 
+    productImageId: {
+        type: String,
+        unique: true
+    },
+
     superTitle: String,
 
     title: String,

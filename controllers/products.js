@@ -1,5 +1,8 @@
 const Product = require('../models/products');
+const Image = require('../models/image');
+const Gallery = require('../models/gallery');
 const mongoose = require("mongoose");
+const image = require('../models/image');
 
 
 function getAllProduct(req, res) {
@@ -10,24 +13,9 @@ function getAllProduct(req, res) {
             res.status(400).json({ message: "Failed!" });
         }
     })
-
-
 }
 
 function getActiveProduct(req, res) {
-    // Product.find({ active: true }, (err, products) => {
-    //     if (products) {
-    //         res.status(200).json(products)
-    //     } else {
-    //         res.status(400).json({ message: "Failed!" });
-    //     }
-    // })
-    // if (res.params.lang == 'en') {
-    //     Product.find({ active: true }).select()
-    // }
-    // else if (res.params.lang == 'ar') {
-    //     Product.find({ active: true }).select()
-    // }
     if (req.params.lang == 'en') {
 
         Product.find({ active: true }).select('productId superTitle title subtitle bulletList description productImage gallery')
@@ -57,14 +45,6 @@ function getActiveProduct(req, res) {
 }
 
 function getHeroSectionProduct(req, res) {
-    // Product.find({ active: true, heroSectionItem: true }, (err, products) => {
-    //     if (products) {
-    //         res.status(200).json(products)
-    //     } else {
-    //         res.status(400).json({ message: "Failed!" });
-    //     }
-    // })
-
     if (req.params.lang == 'en') {
         Product.find({ active: true, heroSectionItem: true }).select('productId superTitle title subtitle description productImage')
             .then((products) => { res.status(200).json(products) })
@@ -93,7 +73,6 @@ function getHeroSectionProduct(req, res) {
 
     }
 }
-
 
 function getProductById(req, res) {
 
@@ -126,93 +105,177 @@ function getProductById(req, res) {
 
 
     }
-    // Product.find({ productId: req.params.id }, (err, product) => {
-    //     if (product) {
-    //         res.status(200).json(product)
-    //     } else {
-    //         res.status(400).json({ message: "Failed!" });
-    //     }
-    // })
 }
 
 function addProduct(req, res) {
-    const newProduct = Product({
-        ...req.body,
-        heroSectionItem: false,
-        _id: new mongoose.Types.ObjectId(),
+    console.log(req.file);
 
-        // productId: req.body.productId,
 
-        // superTitle: req.body.superTitle,
+    if (req.file) {
+        const newImage = Image({
+            _id: new mongoose.Types.ObjectId(),
 
-        // title: req.body.title,
+            data: req.file?.buffer,
 
-        // subtitle: req.body.subtitle,
+            contentType: req.file?.mimetype,
+        })
 
-        // bulletList: req.body.bulletList,
+        newImage.save((err, imageData) => {
+            if (err) {
+                // console.log(err, req.body);
+                res.status(400).json({
+                    message: 'Failed to upload image product, adding product failed'
+                })
+            }
+            else {
+                const newProduct = Product({
+                    ...req.body,
+                    heroSectionItem: false,
+                    active: req.body.active || false,
+                    _id: new mongoose.Types.ObjectId(),
+                    productImage: `https://abou-apis.herokuapp.com/products/product-image/${imageData.id}`,
+                    productImageId: imageData.id,
+                })
 
-        // description: req.body.description,
+                newProduct.save((err, productData) => {
+                    if (err) {
+                        console.log(err, req.body);
+                        res.status(400).json({
+                            message: 'Failed to add product'
+                        })
+                    }
+                    else {
+                        res.status(200).json({
+                            message: 'Product added successfully',
+                            model: productData
+                        })
+                    }
+                })
+            }
+        })
+    } else {
+        const newProduct = Product({
+            ...req.body,
+            heroSectionItem: false,
+            active: req.body.active || false,
+            _id: new mongoose.Types.ObjectId(),
+        })
 
-        // productImage: req.body.productImage,
+        newProduct.save((err, productData) => {
+            if (err) {
+                console.log(err, req.body);
+                res.status(400).json({
+                    message: 'Failed to add product'
+                })
+            }
+            else {
+                res.status(200).json({
+                    message: 'Product added successfully',
+                    model: productData
+                })
+            }
+        })
+    }
 
-        // gallery: req.body.productImage,
-        // // productImage: req.files['productImage'] && req.files['productImage'][0].path,
 
-        // // gallery: req.files['gallery'] && req.files['gallery'].length > 0 && req.files['gallery'].map((image) => (image.path)),
-
-        // active: req.body.active
-    })
-    newProduct.save((err, productData) => {
-        if (err) {
-            console.log(err, req.body);
-            res.status(400).json({
-                message: 'Failed to add product'
-            })
-        }
-        else {
-            res.status(200).json({
-                message: 'Product added successfully',
-                model: productData
-            })
-        }
-    })
     // res.status(200).json({ message: 'success' })
 }
 
 function updateProduct(req, res) {
-    Product.findByIdAndUpdate(req.body.id, {
+    if (req.file) {
 
-        // productId: req.body.productId,
+        Product.findByIdAndUpdate(req.body.id, {
+            ...req.body,
 
-        // superTitle: req.body.superTitle,
+        }, { new: true }, (err, updatedProduct) => {
+            if (err) {
+                console.log(err);
+                res.status(400).json({
+                    message: 'Failed to update product'
+                })
+            } else {
+                if (updatedProduct.productImageId) {
+                    Image.findByIdAndUpdate(updatedProduct.productImageId, {
+                        data: req.file?.buffer,
+                        contentType: req.file?.mimetype,
+                    }, (err) => {
+                        if (err) {
+                            res.status(400).json({
+                                message: 'Failed to update image product'
+                            })
+                        } else {
+                            res.status(200).json({
+                                message: 'Product updated successfully',
+                                model: updatedProduct
+                            })
+                        }
 
-        // title: req.body.title,
+                    })
+                }
 
-        // subtitle: req.body.subtitle,
+                else {
+                    const newImage = Image({
+                        _id: new mongoose.Types.ObjectId(),
 
-        // bulletList: req.body.bulletList,
+                        data: req.file?.buffer,
 
-        // description: req.body.description,
-        ...req.body,
+                        contentType: req.file?.mimetype,
+                    })
 
-        // productImage: req.files['productImage'] && req.files['productImage'][0].path,
+                    newImage.save((err, imageData) => {
+                        if (err) {
+                            // console.log(err, req.body);
+                            res.status(400).json({
+                                message: 'Failed to upload image product'
+                            })
+                        }
+                        else {
 
-        // gallery: req.files['gallery'] && req.files['gallery'].length > 0 && req.files['gallery'].map((image) => (image.path)),
+                            Product.findByIdAndUpdate(
+                                req.body.id,
+                                { productImage: `https://abou-apis.herokuapp.com/products/product-image/${imageData.id}`, productImageId: imageData.id },
+                                { new: true },
+                                (err, updatedProduct) => {
+                                    if (err) {
+                                        res.status(400).json({
+                                            message: 'Failed to update image product'
+                                        })
+                                    } else {
+                                        res.status(200).json({
+                                            message: 'Product updated successfully',
+                                            model: updatedProduct
+                                        })
+                                    }
+                                }
+                            )
 
-    }, { new: true }, (err, updatedProduct) => {
-        if (err) {
-            console.log(err);
-            res.status(400).json({
-                message: 'Failed to update product'
-            })
-        }
-        else {
-            res.status(200).json({
-                message: 'Product updated successfully',
-                model: updatedProduct
-            })
-        }
-    })
+                        }
+                    })
+                }
+
+            }
+
+        })
+    } else {
+        Product.findByIdAndUpdate(req.body.id, {
+
+            ...req.body,
+
+        }, { new: true }, (err, updatedProduct) => {
+            if (err) {
+                console.log(err);
+                res.status(400).json({
+                    message: 'Failed to update product'
+                })
+            }
+            else {
+                res.status(200).json({
+                    message: 'Product updated successfully',
+                    model: updatedProduct
+                })
+            }
+        })
+    }
 }
 
 function activateProduct(req, res) {
@@ -272,4 +335,129 @@ function deleteProduct(req, res) {
     })
 }
 
-module.exports = { getActiveProduct, getAllProduct, getProductById, addProduct, updateProduct, activateProduct, deleteProduct, getHeroSectionProduct, addProductToHeroSection }
+
+////////////////Gallery////////////
+
+function addImageToProductGAllery(req, res) {
+    // console.log(req.body, req.files);
+    if (req.files && (req.files.length > 0)) {
+        Product.find({ productId: req.body.productId }, async (err, product) => {
+            // console.log(product);
+            if (product.length > 0) {
+
+
+                const iamgesArray = req.files.map(function (image) {
+
+                    return new Promise(function (resolve, reject) {
+
+                        const newGalleryImage = Gallery({
+                            _id: new mongoose.Types.ObjectId(),
+
+                            productId: req.body.productId,
+
+                            data: image.buffer,
+
+                            contentType: image.mimetype,
+                        });
+
+                        newGalleryImage.save((err, imageData) => {
+                            if (!err) {
+
+                                let imageUrl = {
+                                    imageUrl: `https://abou-apis.herokuapp.com/products/gallery-product-image/${imageData.id}`,
+                                    imageId: imageData.id,
+                                }
+                                return resolve(imageUrl);
+
+                            }
+                        })
+
+                    });
+                });
+
+                Promise.all(iamgesArray).then(function (imagesUrl) {
+
+                    Product.findOneAndUpdate(
+                        { productId: req.body.productId },
+                        { "$push": { "gallery": { "$each": imagesUrl } } },
+                        { new: true },
+                        (err, updatedProduct) => {
+                            if (err) {
+                                res.status(400).json({
+                                    message: 'Failed to upload images'
+                                })
+                            } else {
+                                res.status(200).json({
+                                    message: 'Images uploaded successfully',
+                                    model: updatedProduct
+                                })
+                            }
+                        }
+                    )
+                })
+
+            }
+
+        })
+
+    } else {
+        res.status(400).json({
+            message: 'Failed to upload images'
+        })
+    }
+
+}
+
+function deleteImageFromProductGallery(req, res) {
+    if (req.params.imageId && req.params.productId) {
+        Gallery.findByIdAndDelete(req.params.imageId, (err) => {
+            if (err) {
+                res.status(400).json({
+                    message: 'Failed to delete image'
+                })
+            } else {
+                Product.findOneAndUpdate(
+                    { productId: req.params.productId },
+                    { $pull: { gallery: { imageId: req.params.imageId } } },
+                    { new: true },
+                    (err, updatedProduct) => {
+                        if (err) {
+                            res.status(400).json({
+                                message: 'Failed to delete image'
+                            })
+                        } else {
+                            res.status(200).json({
+                                message: 'Image deleted successfully',
+                                model: updatedProduct
+                            })
+                        }
+                    })
+            }
+        })
+    }
+}
+
+function returnImageInProductGallery(req, res) {
+    Gallery.findById(req.params.id, (err, image) => {
+        if (image) {
+            res.contentType(image.contentType)
+            res.send(image.data);
+        } else {
+            res.send('error')
+        }
+    })
+}
+
+function returnProductImage(req, res) {
+    Image.findById(req.params.id, (err, image) => {
+        if (image) {
+            res.contentType(image.contentType)
+            res.send(image.data);
+        } else {
+            res.send('error')
+        }
+
+    })
+}
+
+module.exports = { getActiveProduct, getAllProduct, getProductById, addProduct, updateProduct, activateProduct, deleteProduct, getHeroSectionProduct, addProductToHeroSection, returnProductImage, addImageToProductGAllery, deleteImageFromProductGallery, returnImageInProductGallery }
