@@ -1,0 +1,11 @@
+---
+application:
+  name: "abou-apis"
+  project: "abou-apis"
+  organization: "QoveryCommunity"
+routers:
+- name: "main-abou-apis"
+  routes:
+  - application_name: "abou-apis"
+    paths:
+    - "/*"
