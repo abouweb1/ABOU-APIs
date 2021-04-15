@@ -5,7 +5,8 @@ application:
   organization: "QoveryCommunity"
 databases:
 - type: "MONGODB"
-  name: "abou-db"
+  name: "aboud-db"
+  version: "4.4"
 routers:
 - name: "main-abou-apis"
   routes:
